@@ -13,9 +13,10 @@
 
         .product-photocard-img {
 
-            width: 50%;
+            width: 100%;
+            height: 200px;
             /* aspect-ratio: 2/3; */
-            object-fit: cover;
+            object-fit:
 
         }
     </style>
@@ -113,21 +114,24 @@
 
                         {{-- ini card foreach start --}}
 
-                        @foreach ($barangs as $barang)
-                            <!-- Card with an image on top -->
-                            <div class="card product-photocard">
-                                <img src="{{ asset($barang->gambar_barang) }}" class="card-img-top product-photocard-img"
-                                    alt="{{ asset($barang->gambar_barang) }}">
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ $barang->nama_barang }}</h5>
-                                    <p class="card-text">Harga : Rp. {{ $barang->harga_barang }}</p>
-                                    <p class="card-text">
-                                        <a href="#" class="btn btn-success">
-                                            Tambah ke keranjang
-                                        </a>
-                                    </p>
+                        @foreach ($barangs as $item)
+                            <!-- Sales Card -->
+                            <div class="col-xxl-4 col-md-6 mb-4">
+                                <div class="product-photocard">
+                                    <img class="product-photocard-img" src="{{ asset($item->gambar_barang) }}"
+                                        alt="{{ $item->gambar_barang }}">
+                                    <div class="product-photocard-content">
+
+                                        <h1 class="product-photocard-title text-capitalize">{{ $item->nama_barang }}</h1>
+                                        <h6 class="product-photocard-subtitle">{{ $item->harga_barang }}</h6>
+                                        <button
+                                            onclick="addToOrderList('{{ $item->nama_barang }}', '{{ $item->harga_barang }}')">Add
+                                            to Cart</button>
+
+                                    </div>
                                 </div>
-                            </div><!-- End Card with an image on top -->
+
+                            </div><!-- End Sales Card -->
                         @endforeach
 
                         {{-- ini card foreach end --}}
@@ -136,154 +140,190 @@
                     </div>
                 </div>
 
-                <div class="col-md-4">
-                    <div style="display: flex; justify-content: center">
-                        <h5>Order List</h5>
-                    </div>
+                <!-- Right side columns -->
+                <div class="col-lg-4">
 
-                    <div>
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>No</th>
-                                    <th>Nama Barang</th>
-                                    <th>Jumlah</th>
-                                    <th>Harga</th>
-                                    <th>Total</th>
-                                </tr>
-                            </thead>
-                            <tbody id="cart-items">
-                                <tr id="cart-row-template" style="display: none;">
-                                    <td class="item-number"></td>
-                                    <td data-item-id="" class="item-name"></td>
-                                    <td>
-                                        <button class="btn btn-sm btn-danger remove-item">Kurang</button>
-                                        <span class="item-quantity"></span>
-                                        <button class="btn btn-sm btn-success add-item">Tambah</button>
-                                    </td>
-                                    <td class="item-price"></td>
-                                    <td class="total-price"></td>
-                                </tr>
-                            </tbody>
-                            <tfoot>
-                                <tr>
-                                    <th colspan="4">Total Semua</th>
-                                    <th id="total-all">0</th>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </div>
+                    <!-- Recent Activity -->
+                    <div class="card">
+
+                        <div class="card-body">
+                            <div class="row">
+                                <h1>Order List</h1>
+                            </div>
+                            <div class="row" id="orderList">
+                                <table style="width: 100%">
+                                    <tr>
+                                        {{-- <th>No.</th> --}}
+                                        <th>Product</th>
+                                        <th>Qty</th>
+                                        <th>Price/item</th>
+                                        <th>Price all</th>
+                                        <th>Action</th>
+                                    </tr>
+                                    @foreach ($barangs as $item)
+                                    @endforeach
+                                </table>
+                            </div>
+                            <hr>
+                            <div class="row d-flex">
+                                <div class="col-8">
+                                    Total
+
+                                </div>
+
+                                <div class="col-4 text-end">
+                                    <span class="" id="totalPrice">0.00</span>
+
+                                    <button onclick="applyDiscountAndDisplayFinalPrice()">Apply Discount</button>
+                                    <p>Discounted Price: <span id="finalPrice">0.00</span></p>
+                                </div>
+
+                            </div>
+                            <div class="row">
+                                <h4>Payment Method</h4>
+                            </div>
+                            <div class="row">
+                                <div class="col-2">
+                                    <button class="method-button">Method</button>
+                                </div>
+                                <div class="col-2">
+                                    <button class="method-button">Extra looong Method</button>
+                                </div>
+                                <div class="col-2">
+                                    <button class="method-button">Method</button>
+                                </div>
+                                <div class="col-2">
+                                    <button class="method-button">Method</button>
+                                </div>
+                                <div class="col-2">
+                                    <button class="method-button">Method</button>
+                                </div>
+                                <div class="col-2">
+                                    <button class="method-button">Method</button>
+                                </div>
+                                <div class="col-2">
+                                    <button class="method-button">Method</button>
+                                </div>
+                                <div class="col-2">
+                                    <button class="method-button">Method</button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div><!-- End Recent Activity -->
+
+                </div><!-- End Right side columns -->
 
             </div>
-
         </div>
-    </div>
-@endsection
+    @endsection
 
-@push('scripts')
-<script>
-    var orderIdCounter = 1; // Initialize the counter
-    var totalOrderPrice = 0; // Initialize the total order price
-    var discount = 0; // Initialize the discount
-    var itemQuantities = {}; // Dictionary to store item quantities
+    @push('scripts')
+        <script>
+            var orderIdCounter = 1; // Initialize the counter
+            var totalOrderPrice = 0; // Initialize the total order price
+            var discount = 0; // Initialize the discount
+            var itemQuantities = {}; // Dictionary to store item quantities
 
-    function addToOrderList(itemName, itemPrice) {
-        // Generate a unique ID for the order item
-        var itemId = orderIdCounter++; // Use the counter directly
+            function addToOrderList(itemName, itemPrice) {
+                // Generate a unique ID for the order item
+                var itemId = orderIdCounter++; // Use the counter directly
 
-        // Check if the item already exists in the order list
-        if (itemQuantities[itemName]) {
-            // If yes, increment the quantity and update total price
-            updateQuantity(itemId, 1, itemName);
-        } else {
-            // If not, create a new order item
-            createOrderItem(itemId, itemName, itemPrice);
-            itemQuantities[itemName] = 1; // Initialize quantity to 1
-        }
+                // Check if the item already exists in the order list
+                if (itemQuantities[itemName]) {
+                    // If yes, increment the quantity and update total price
+                    updateQuantity(itemId, 1, itemName);
+                } else {
+                    // If not, create a new order item
+                    createOrderItem(itemId, itemName, itemPrice);
+                    itemQuantities[itemName] = 1; // Initialize quantity to 1
+                }
 
-        // Update the total order price
-        totalOrderPrice += parseFloat(itemPrice);
-        applyDiscount();
-        document.getElementById('totalPrice').innerText = formatPrice(totalOrderPrice);
-    }
-
-    // Function to create a new order item
-    function createOrderItem(itemId, itemName, itemPrice) {
-        var newRow = document.createElement('tr');
-        newRow.id = 'orderItem' + itemId; // Concatenate with 'orderItem'
-        newRow.innerHTML = `
-                                    <td>${itemName}</td>
-                                    <td id="quantity${itemId}">1</td>
-                                    <td>${itemPrice}</td>
-                                    <td id="totalPrice${itemId}">${itemPrice}</td>
-                                    <td>
-                                        <button onclick="updateQuantity(${itemId}, 1, '${itemName}')">+</button>
-                                        <button onclick="updateQuantity(${itemId}, -1, '${itemName}')">-</button>
-                                    </td>
-                                `;
-        document.querySelector('#orderList table').appendChild(newRow);
-    }
-
-    function updateQuantity(itemId, change, itemName) {
-        var quantityCell = document.getElementById(quantity${itemId});
-        var totalCell = document.getElementById(totalPrice${itemId});
-        var currentQuantity = parseInt(quantityCell.innerText, 10);
-
-        // Update the quantity and total price
-        quantityCell.innerText = currentQuantity + change;
-
-        // Check if the item still exists in the dictionary
-        if (itemQuantities[itemName]) {
-            var itemPrice = parseFloat(totalCell.innerText) / currentQuantity;
-            totalCell.innerText = (currentQuantity + change) * itemPrice;
-
-            // Update itemQuantities dictionary
-            itemQuantities[itemName] = currentQuantity + change;
-        }
-
-        // Update the total order price
-        totalOrderPrice += change * itemPrice;
-        applyDiscount();
-        document.getElementById('totalPrice').innerText = formatPrice(totalOrderPrice);
-
-        // Remove the item if the quantity is 0
-        if (currentQuantity + change === 0) {
-            var itemRow = document.getElementById('orderItem' + itemId);
-            if (itemRow) {
-                itemRow.remove();
+                // Update the total order price
+                totalOrderPrice += parseFloat(itemPrice);
+                applyDiscount();
+                document.getElementById('totalPrice').innerText = formatPrice(totalOrderPrice);
             }
-            delete itemQuantities[itemName]; // Remove from dictionary
-        }
-    }
 
-    function applyDiscount() {
-        // Apply 10% discount if total order price is greater than or equal to 200000
-        if (totalOrderPrice >= 200000) {
-            discount = 10; // Set discount to 10%
-        } else if (totalOrderPrice >= 100000) {
-            discount = 5; // Set discount to 5% if total order price is greater than or equal to 100000
-        } else {
-            discount = 0; // No discount
-        }
-    }
+            // Function to create a new order item
+            function createOrderItem(itemId, itemName, itemPrice) {
+                var newRow = document.createElement('tr');
+                newRow.id = 'orderItem' + itemId; // Concatenate with 'orderItem'
+                newRow.innerHTML = `
+                                        <td>${itemName}</td>
+                                        <td id="quantity${itemId}">1</td>
+                                        <td>${itemPrice}</td>
+                                        <td id="totalPrice${itemId}">${itemPrice}</td>
+                                        <td>
+                                            <button onclick="updateQuantity(${itemId}, 1, '${itemName}')">+</button>
+                                            <button onclick="updateQuantity(${itemId}, -1, '${itemName}')">-</button>
+                                        </td>
+                                    `;
+                document.querySelector('#orderList table').appendChild(newRow);
+            }
 
-    function formatPrice(price) {
-        if (discount !== 0) {
-            return ${price.toFixed(2)} (-${discount}%);
-        } else {
-            return price.toFixed(2);
-        }
-    }
+            function updateQuantity(itemId, change, itemName) {
+                var quantityCell = document.getElementById(quantity$ {
+                    itemId
+                });
+                var totalCell = document.getElementById(totalPrice$ {
+                    itemId
+                });
+                var currentQuantity = parseInt(quantityCell.innerText, 10);
+                var itemPrice = 0;
 
-    function updateTotalPriceDisplay() {
-        document.getElementById('totalPrice').innerText = totalOrderPrice.toFixed(2);
-    }
+                // Update the quantity and total price
+                quantityCell.innerText = currentQuantity + change;
 
-    function applyDiscountAndDisplayFinalPrice() {
-        applyDiscount();
-        var finalPrice = totalOrderPrice - (totalOrderPrice * (discount / 100));
-        document.getElementById('finalPrice').innerText = finalPrice.toFixed(2);
-    }
-</script>
-@endpush
+                // Check if the item still exists in the dictionary
+                if (itemQuantities[itemName]) {
+                    itemPrice = parseFloat(totalCell.innerText) / (currentQuantity + change);
+                    totalCell.innerText = (currentQuantity + change) * itemPrice;
+
+                    // Update itemQuantities dictionary
+                    itemQuantities[itemName] = currentQuantity + change;
+                }
+
+                totalOrderPrice += change * itemPrice;
+                applyDiscount();
+                document.getElementById('totalPrice').innerText = formatPrice(totalOrderPrice);
+
+                if (currentQuantity + change === 0) {
+                    var itemRow = document.getElementById('orderItem' + itemId);
+                    if (itemRow) {
+                        itemRow.remove();
+                    }
+                    delete itemQuantities[itemName]; // Remove from dictionary
+                }
+            }
+
+            function applyDiscount() {
+                // Apply 10% discount if total order price is greater than or equal to 200000
+                if (totalOrderPrice >= 200000) {
+                    discount = 10; // Set discount to 10%
+                } else if (totalOrderPrice >= 100000) {
+                    discount = 5; // Set discount to 5% if total order price is greater than or equal to 100000
+                } else {
+                    discount = 0; // No discount
+                }
+            }
+
+            function formatPrice(price) {
+                if (discount !== 0) {
+                    return price.toFixed(2) + ' (-' + discount + '%)';
+                } else {
+                    return price.toFixed(2);
+                }
+            }
+
+            function updateTotalPriceDisplay() {
+                document.getElementById('totalPrice').innerText = totalOrderPrice.toFixed(2);
+            }
+
+            function applyDiscountAndDisplayFinalPrice() {
+                applyDiscount();
+                var finalPrice = totalOrderPrice - (totalOrderPrice * (discount / 100));
+                document.getElementById('finalPrice').innerText = finalPrice.toFixed(2);
+            }
+        </script>
+    @endpush
