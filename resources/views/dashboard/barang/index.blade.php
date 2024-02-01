@@ -204,12 +204,6 @@
 
                 // Update keranjang
                 function updateCart() {
-                    // Logika update tabel order dan total harga di sini
-                    console.log(cart);
-                }
-
-                // Update keranjang
-                function updateCart() {
                     var orderList = $('#order-list');
                     var totalPrice = 0;
 
@@ -243,7 +237,7 @@
                 }
 
                 // Function to update quantity
-                function updateQuantity(itemId, change) {
+                window.updateQuantity = function(itemId, change) {
                     var item = cart.find(i => i.id === itemId);
 
                     if (item) {
@@ -254,7 +248,7 @@
                         }
                         updateCart();
                     }
-                }
+                };
 
                 // Logika diskon
                 function applyDiscount(totalPrice) {
@@ -265,14 +259,14 @@
                     } else if (totalPrice >= 100000) {
                         discountRate = 0.05;
                     }
-                    
+
                     var discountAmount = totalPrice * discountRate;
                     var discountedPrice = totalPrice - discountAmount;
-                    
+
                     // Tampilkan diskon dan total harga setelah diskon
                     // console.log('Discount: ' + discountAmount.toFixed(2));
-                    
-                    
+
+
                     if (totalPrice >= 200000) {
                         $('#discount').text('10%')
                         $('#total-price').text(discountedPrice.toFixed(2))
