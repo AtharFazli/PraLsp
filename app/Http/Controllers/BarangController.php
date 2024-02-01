@@ -31,7 +31,6 @@ class BarangController extends Controller
     {
         $request->validate([
             'nama_barang'       => 'required|string',
-            'jumlah_barang'     => 'required|numeric',
             'harga_barang'      => 'required|numeric',
             'gambar_barang'     => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
@@ -42,7 +41,6 @@ class BarangController extends Controller
 
         $barang = Barang::create([
             'nama_barang'       => $request->nama_barang,
-            'jumlah_barang'     => $request->jumlah_barang,
             'harga_barang'      => $request->harga_barang,
             'gambar_barang'     => 'gambar/' . $namaFile
         ]);

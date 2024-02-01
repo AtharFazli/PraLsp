@@ -83,12 +83,7 @@
                                                     <label for="namaBarang">Nama Barang</label>
                                                 </div>
                                                 <div class="form-floating mb-3">
-                                                    <input type="text" class="form-control" id="jumlahBarang"
-                                                        name="jumlah_barang" placeholder="jumlah barang">
-                                                    <label for="jumlahBarang">Jumlah Barang</label>
-                                                </div>
-                                                <div class="form-floating mb-3">
-                                                    <input type="text" class="form-control" id="hargaBarang"
+                                                    <input type="number" class="form-control" id="hargaBarang"
                                                         name="harga_barang" placeholder="harga_barang">
                                                     <label for="hargaBarang">Harga Barang</label>
                                                 </div>
@@ -166,6 +161,17 @@
                                     </tr>
                                 </tfoot>
                             </table>
+                            <div class="mb-3">
+                                <label for="paymentMethod" class="form-label">Metode Pembayaran</label>
+                                <select class="form-control" name="metode_pembayaran" id="paymentMethod">
+                                    <option value="cash">Tunai</option>
+                                    <option value="credit_card">Kartu Kredit</option>
+                                </select>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                                <button type="button" class="btn btn-primary" onclick="checkout()">Checkout</button>
+                            </div>
                         </div>
                     </div><!-- End Recent Activity -->
                 </div><!-- End Right side columns -->
@@ -204,13 +210,13 @@
 
                 // Update keranjang
                 function updateCart() {
-                    var orderList = $('#order-list');
-                    var totalPrice = 0;
+                    let orderList = $('#order-list');
+                    let totalPrice = 0;
 
                     orderList.empty();
 
                     cart.forEach(function(item) {
-                        var subtotal = item.price * item.quantity;
+                        let subtotal = item.price * item.quantity;
                         totalPrice += subtotal;
 
                         orderList.append(
@@ -218,10 +224,10 @@
                             '<td>Nama Barang</td>' +
                             '<td>' + item.price + '</td>' +
                             '<td>' +
-                            '<button class="btn btn-sm btn-info" onclick="updateQuantity(' + item.id +
+                            '<button class="btn btn-sm btn-warning" onclick="updateQuantity(' + item.id +
                             ', -1)">-</button>' +
                             ' ' + item.quantity + ' ' +
-                            '<button class="btn btn-sm btn-info" onclick="updateQuantity(' + item.id +
+                            '<button class="btn btn-sm btn-warning" onclick="updateQuantity(' + item.id +
                             ', 1)">+</button>' +
                             '</td>' +
                             '<td>' + subtotal + '</td>' +
@@ -238,7 +244,7 @@
 
                 // Function to update quantity
                 window.updateQuantity = function(itemId, change) {
-                    var item = cart.find(i => i.id === itemId);
+                    let item = cart.find(i => i.id === itemId);
 
                     if (item) {
                         item.quantity += change;
@@ -252,7 +258,7 @@
 
                 // Logika diskon
                 function applyDiscount(totalPrice) {
-                    var discountRate = 0;
+                    let discountRate = 0;
 
                     if (totalPrice >= 200000) {
                         discountRate = 0.10;
@@ -260,11 +266,9 @@
                         discountRate = 0.05;
                     }
 
-                    var discountAmount = totalPrice * discountRate;
-                    var discountedPrice = totalPrice - discountAmount;
+                    let discountAmount = totalPrice * discountRate;
+                    let discountedPrice = totalPrice - discountAmount;
 
-                    // Tampilkan diskon dan total harga setelah diskon
-                    // console.log('Discount: ' + discountAmount.toFixed(2));
 
 
                     if (totalPrice >= 200000) {
@@ -275,11 +279,33 @@
                         $('#total-price').text(discountedPrice.toFixed(2))
                     }
 
-                    console.log('Total Price after Discount: ' + discountedPrice.toFixed(2));
 
                 }
 
+                function checkout() {
+                    if (cart.length === 0) {
+                        alert('Keranjang belanja kosong.');
+                        return;
+                    }
 
+                    // Additional logic for handling the checkout process
+                    // ...
+
+                    // Send the order details to the server
+                    $.post("{{ route('checkout') }}", {
+                        cart: cart
+                    }, function(response) {
+                        // Handle the response, e.g., show a success message or download the PDF
+                        console.log('Receipt generated:', response);
+
+                        // Clear the cart after checkout
+                        cart = [];
+                        updateCart();
+
+                        // Close the modal or redirect to a thank you page
+                        $('#staticBackdrop').modal('hide');
+                    });
+                }
 
             });
         </script>
