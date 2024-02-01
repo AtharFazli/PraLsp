@@ -16,7 +16,6 @@
             width: 100%;
             height: 200px;
             /* aspect-ratio: 2/3; */
-            object-fit:
 
         }
     </style>
@@ -40,8 +39,8 @@
 
                 <div class="col-md-8">
                     <div class="row">
-                        <h5 class="card-title col-md-8">Halal Mart</h5>
-                        <div class="col-md-4">
+                        <h5 class="card-title col-md-10">Halal Mart</h5>
+                        <div class="col-md-2">
                             <!-- Button trigger modal -->
                             <button type="button" class="btn btn-primary mt-3" data-bs-toggle="modal"
                                 data-bs-target="#staticBackdrop">
@@ -114,25 +113,23 @@
 
                         {{-- ini card foreach start --}}
 
-                        @foreach ($barangs as $item)
-                            <!-- Sales Card -->
-                            <div class="col-xxl-4 col-md-6 mb-4">
-                                <div class="product-photocard">
-                                    <img class="product-photocard-img" src="{{ asset($item->gambar_barang) }}"
+                        <!-- Card with an image on top -->
+                        <div class="row">
+                            @foreach ($barangs as $item)
+                                <div class="card col-md-4 mt-3 mr-3">
+                                    <img src="{{ asset($item->gambar_barang) }}" class="card-img-top product-photocard-img"
                                         alt="{{ $item->gambar_barang }}">
-                                    <div class="product-photocard-content">
-
-                                        <h1 class="product-photocard-title text-capitalize">{{ $item->nama_barang }}</h1>
-                                        <h6 class="product-photocard-subtitle">{{ $item->harga_barang }}</h6>
-                                        <button
-                                            onclick="addToOrderList('{{ $item->nama_barang }}', '{{ $item->harga_barang }}')">Add
-                                            to Cart</button>
-
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ $item->nama_barang }}</h5>
+                                        <p class="card-text">Harga : Rp. {{ $item->harga_barang }}</p>
+                                        <p class="card-text"><a href="#" class="btn btn-success add-to-cart"
+                                                data-id="{{ $item->id }}" data-nama="{{ $item->nama_barang }}"
+                                                data-price="{{ $item->harga_barang }}">Beli</a>
+                                        </p>
                                     </div>
-                                </div>
-
-                            </div><!-- End Sales Card -->
-                        @endforeach
+                                </div><!-- End Card with an image on top -->
+                            @endforeach
+                        </div>
 
                         {{-- ini card foreach end --}}
 
@@ -142,76 +139,35 @@
 
                 <!-- Right side columns -->
                 <div class="col-lg-4">
-
                     <!-- Recent Activity -->
-                    <div class="card">
-
+                    <div class="card mt-5">
                         <div class="card-body">
-                            <div class="row">
-                                <h1>Order List</h1>
-                            </div>
-                            <div class="row" id="orderList">
-                                <table style="width: 100%">
+                            <h3 class="d-flex justify-content-center">Order List</h3>
+                            <table class="table">
+                                <thead>
                                     <tr>
-                                        {{-- <th>No.</th> --}}
-                                        <th>Product</th>
-                                        <th>Qty</th>
-                                        <th>Price/item</th>
-                                        <th>Price all</th>
-                                        <th>Action</th>
+                                        <th>Nama Barang</th>
+                                        <th>Harga Barang</th>
+                                        <th>Jumlah</th>
+                                        <th>Subtotal</th>
                                     </tr>
-                                    @foreach ($barangs as $item)
-                                    @endforeach
-                                </table>
-                            </div>
-                            <hr>
-                            <div class="row d-flex">
-                                <div class="col-8">
-                                    Total
-
-                                </div>
-
-                                <div class="col-4 text-end">
-                                    <span class="" id="totalPrice">0.00</span>
-
-                                    <button onclick="applyDiscountAndDisplayFinalPrice()">Apply Discount</button>
-                                    <p>Discounted Price: <span id="finalPrice">0.00</span></p>
-                                </div>
-
-                            </div>
-                            <div class="row">
-                                <h4>Payment Method</h4>
-                            </div>
-                            <div class="row">
-                                <div class="col-2">
-                                    <button class="method-button">Method</button>
-                                </div>
-                                <div class="col-2">
-                                    <button class="method-button">Extra looong Method</button>
-                                </div>
-                                <div class="col-2">
-                                    <button class="method-button">Method</button>
-                                </div>
-                                <div class="col-2">
-                                    <button class="method-button">Method</button>
-                                </div>
-                                <div class="col-2">
-                                    <button class="method-button">Method</button>
-                                </div>
-                                <div class="col-2">
-                                    <button class="method-button">Method</button>
-                                </div>
-                                <div class="col-2">
-                                    <button class="method-button">Method</button>
-                                </div>
-                                <div class="col-2">
-                                    <button class="method-button">Method</button>
-                                </div>
-
-                            </div>
+                                </thead>
+                                <tbody id="order-list">
+                                    <!-- Data Order akan ditampilkan di sini -->
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="3">Diskon</th>
+                                        <th id="discount"></th>
+                                    </tr>
+                                    <tr>
+                                        <th colspan="3">Total Harga</th>
+                                        <th id="total-price">0</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
                         </div>
                     </div><!-- End Recent Activity -->
-
                 </div><!-- End Right side columns -->
 
             </div>
@@ -220,110 +176,117 @@
 
     @push('scripts')
         <script>
-            var orderIdCounter = 1; // Initialize the counter
-            var totalOrderPrice = 0; // Initialize the total order price
-            var discount = 0; // Initialize the discount
-            var itemQuantities = {}; // Dictionary to store item quantities
+            $(document).ready(function() {
+                let cart = [];
 
-            function addToOrderList(itemName, itemPrice) {
-                // Generate a unique ID for the order item
-                var itemId = orderIdCounter++; // Use the counter directly
+                // Tambahkan ke keranjang
+                $('.add-to-cart').click(function(e) {
+                    e.preventDefault();
+                    let id = $(this).data('id');
+                    let price = parseFloat($(this).data('price'));
+                    let item = {
+                        id: id,
+                        name: name,
+                        price: price,
+                        quantity: 1
+                    };
 
-                // Check if the item already exists in the order list
-                if (itemQuantities[itemName]) {
-                    // If yes, increment the quantity and update total price
-                    updateQuantity(itemId, 1, itemName);
-                } else {
-                    // If not, create a new order item
-                    createOrderItem(itemId, itemName, itemPrice);
-                    itemQuantities[itemName] = 1; // Initialize quantity to 1
-                }
-
-                // Update the total order price
-                totalOrderPrice += parseFloat(itemPrice);
-                applyDiscount();
-                document.getElementById('totalPrice').innerText = formatPrice(totalOrderPrice);
-            }
-
-            // Function to create a new order item
-            function createOrderItem(itemId, itemName, itemPrice) {
-                var newRow = document.createElement('tr');
-                newRow.id = 'orderItem' + itemId; // Concatenate with 'orderItem'
-                newRow.innerHTML = `
-                                        <td>${itemName}</td>
-                                        <td id="quantity${itemId}">1</td>
-                                        <td>${itemPrice}</td>
-                                        <td id="totalPrice${itemId}">${itemPrice}</td>
-                                        <td>
-                                            <button onclick="updateQuantity(${itemId}, 1, '${itemName}')">+</button>
-                                            <button onclick="updateQuantity(${itemId}, -1, '${itemName}')">-</button>
-                                        </td>
-                                    `;
-                document.querySelector('#orderList table').appendChild(newRow);
-            }
-
-            function updateQuantity(itemId, change, itemName) {
-                var quantityCell = document.getElementById(quantity$ {
-                    itemId
-                });
-                var totalCell = document.getElementById(totalPrice$ {
-                    itemId
-                });
-                var currentQuantity = parseInt(quantityCell.innerText, 10);
-                var itemPrice = 0;
-
-                // Update the quantity and total price
-                quantityCell.innerText = currentQuantity + change;
-
-                // Check if the item still exists in the dictionary
-                if (itemQuantities[itemName]) {
-                    itemPrice = parseFloat(totalCell.innerText) / (currentQuantity + change);
-                    totalCell.innerText = (currentQuantity + change) * itemPrice;
-
-                    // Update itemQuantities dictionary
-                    itemQuantities[itemName] = currentQuantity + change;
-                }
-
-                totalOrderPrice += change * itemPrice;
-                applyDiscount();
-                document.getElementById('totalPrice').innerText = formatPrice(totalOrderPrice);
-
-                if (currentQuantity + change === 0) {
-                    var itemRow = document.getElementById('orderItem' + itemId);
-                    if (itemRow) {
-                        itemRow.remove();
+                    // Cek apakah item sudah ada di keranjang
+                    let existingItem = cart.find(i => i.id === id);
+                    if (existingItem) {
+                        existingItem.quantity++;
+                    } else {
+                        cart.push(item);
                     }
-                    delete itemQuantities[itemName]; // Remove from dictionary
+
+                    updateCart();
+                });
+
+                // Update keranjang
+                function updateCart() {
+                    // Logika update tabel order dan total harga di sini
+                    console.log(cart);
                 }
-            }
 
-            function applyDiscount() {
-                // Apply 10% discount if total order price is greater than or equal to 200000
-                if (totalOrderPrice >= 200000) {
-                    discount = 10; // Set discount to 10%
-                } else if (totalOrderPrice >= 100000) {
-                    discount = 5; // Set discount to 5% if total order price is greater than or equal to 100000
-                } else {
-                    discount = 0; // No discount
+                // Update keranjang
+                function updateCart() {
+                    var orderList = $('#order-list');
+                    var totalPrice = 0;
+
+                    orderList.empty();
+
+                    cart.forEach(function(item) {
+                        var subtotal = item.price * item.quantity;
+                        totalPrice += subtotal;
+
+                        orderList.append(
+                            '<tr>' +
+                            '<td>Nama Barang</td>' +
+                            '<td>' + item.price + '</td>' +
+                            '<td>' +
+                            '<button class="btn btn-sm btn-info" onclick="updateQuantity(' + item.id +
+                            ', -1)">-</button>' +
+                            ' ' + item.quantity + ' ' +
+                            '<button class="btn btn-sm btn-info" onclick="updateQuantity(' + item.id +
+                            ', 1)">+</button>' +
+                            '</td>' +
+                            '<td>' + subtotal + '</td>' +
+                            '</tr>'
+                        );
+                    });
+
+                    // Tampilkan total harga
+                    $('#total-price').text(totalPrice.toFixed(2));
+
+                    // Terapkan diskon jika total harga memenuhi syarat
+                    applyDiscount(totalPrice);
                 }
-            }
 
-            function formatPrice(price) {
-                if (discount !== 0) {
-                    return price.toFixed(2) + ' (-' + discount + '%)';
-                } else {
-                    return price.toFixed(2);
+                // Function to update quantity
+                function updateQuantity(itemId, change) {
+                    var item = cart.find(i => i.id === itemId);
+
+                    if (item) {
+                        item.quantity += change;
+                        if (item.quantity <= 0) {
+                            // Hapus item jika jumlahnya kurang dari atau sama dengan 0
+                            cart = cart.filter(i => i.id !== itemId);
+                        }
+                        updateCart();
+                    }
                 }
-            }
 
-            function updateTotalPriceDisplay() {
-                document.getElementById('totalPrice').innerText = totalOrderPrice.toFixed(2);
-            }
+                // Logika diskon
+                function applyDiscount(totalPrice) {
+                    var discountRate = 0;
 
-            function applyDiscountAndDisplayFinalPrice() {
-                applyDiscount();
-                var finalPrice = totalOrderPrice - (totalOrderPrice * (discount / 100));
-                document.getElementById('finalPrice').innerText = finalPrice.toFixed(2);
-            }
+                    if (totalPrice >= 200000) {
+                        discountRate = 0.10;
+                    } else if (totalPrice >= 100000) {
+                        discountRate = 0.05;
+                    }
+                    
+                    var discountAmount = totalPrice * discountRate;
+                    var discountedPrice = totalPrice - discountAmount;
+                    
+                    // Tampilkan diskon dan total harga setelah diskon
+                    // console.log('Discount: ' + discountAmount.toFixed(2));
+                    
+                    
+                    if (totalPrice >= 200000) {
+                        $('#discount').text('10%')
+                        $('#total-price').text(discountedPrice.toFixed(2))
+                    } else if (totalPrice >= 100000) {
+                        $('#discount').text('5%')
+                        $('#total-price').text(discountedPrice.toFixed(2))
+                    }
+
+                    console.log('Total Price after Discount: ' + discountedPrice.toFixed(2));
+
+                }
+
+
+
+            });
         </script>
     @endpush
